@@ -1,0 +1,170 @@
+This is a list of things that need to be done to this distribution,
+features which have been requested, bugs that I've noticed and haven't
+fixed yet, and similar such things.  It's not in any particular order, and
+definitely isn't in order of priority or severity or any other such useful
+thing.  Some elementary effort has gone into organizing it by type, but
+even that may not be all that thorough.
+
+Patches, suggestions, comments, and additions based on anything on this
+list are *greatly appreciated* and will result in entries in the THANKS
+file.  Additions to this file are also greatly appreciated.
+
+People requesting things are listed in brackets after the points (mostly
+for my own information for future THANKS entries).
+
+NEEDED FOR rec.games.mecha [Chris Meadows, et. al.]
+
+  * Detection of crossposts to other moderated groups.
+  * A general moderator interface (see next point).
+
+THOUGHTS ON A GENERAL MODERATOR INTERFACE [Inspired by Igor Chudov]
+
+  * Probably should be web-based at first cut, since that's the most
+    flexible and platform-independent.  E-mail would also be nice.  Being
+    web-based means we have to worry (a lot) about security issues;
+    avoiding anything setuid is pretty much vital.  We also ideally should
+    be able to run from anything that allows CGI scripts, requiring no
+    other changes to the system.
+  * It may be easier to start by implementing an e-mail interface and then
+    just have the web interface use that.  If the e-mail interface uses a
+    password, we could use the authentication password from the web form
+    as the e-mail password.  Then we wouldn't have to be setuid, since the
+    mail system would do the setuid call for us, and all of our normal
+    logging will just work.
+  * There needs to be a mechanism by which moderators can change posts as
+    well as just approve or reject them.  This is hard via web.  This
+    might *have* to be handled via e-mail.  Use majordomo's trick for
+    approving list messages and just take incoming forwarded mail and
+    strip everything off up to some defined boundary and treat the rest as
+    a submission but with pre-approval?  That's probably the easiest....
+
+CORE
+
+  * Allow configuration directives that are of interest to multiple
+    modules to be given to all of those modules, which should reduce the
+    conflict problem.
+  * Look at improving core support for the news to mail direction, if
+    necessary.
+  * Look at the whole issue of what happens when a module rejects and how
+    to restart the checks.  Many modules are currently not restartable;
+    should that change?  What should be done instead?  Should there be
+    some additional interface that says to run the checks of just module
+    X, or replace the module list with something else?  Thought:  What we
+    have is an array of modules to call plus a pointer to our current
+    location in that array.  Perl has tons of array handling already built
+    in.  Can we just use it?
+  * What, if anything, can we do about modules that require other Perl
+    modules?  I believe the only issue is imports into the News::Gateway
+    namespace....  Maybe a sub that modules call to import Perl modules?
+  * If arguments are passed to a module that doesn't take any arguments,
+    currently that generates an autoloader error complaining about the
+    missing _init sub.  AUTOLOAD() should catch that case and so something
+    more interesting with it.
+  * Make sure that it works with at least Windows NT.  This is going to
+    require (a) access to a Windows NT box to do testing (which will
+    hopefully be coming shortly) and (b) ensuring that libnet works on
+    Windows NT.  That part is likely to be at least somewhat problematic.
+    [Inspired by Henrietta Thomas]
+  * apply() should allow one to give it a module or list of modules to
+    apply to the article.
+  * Remove the (now unnecessary) $ID from use vars.
+
+BUILD PROCESS
+
+  * Find a better way to figure out what the correct permanent failure
+    code is than hardcoding it and expecting the user to change it on
+    install.
+  * Do we want to build a file of stubs the way AutoLoader usually has?
+    use strict 'methods' may require it in 5.005.  We may also have to
+    have it to do anything sane about missing methods in the AUTOLOAD
+    sub.  Need to look into how one can tell if a sub has been loaded.
+
+DOCUMENTATION
+
+  * Add documentation of the additional fatal AUTOLOAD errors that can
+    occur.
+  * Write some more generic front-ends or otherwise provide documentation
+    or ideally a robomoderator constructor for those people who don't
+    like doing the Perl programming themselves.
+  * Check the documentation for references that are too focused on the
+    mail to news direction of gatewaying.
+  * Migrate the extensive comments currently in the source out into a
+    separate INTERNALS file to decrease the source code comment size.
+    Should we also be doing the same thing for the modules?  How would we
+    handle module-specific internals documentation?  What formatting
+    language should we use for all this stuff?
+  * Write a guide to writing robomoderators that both includes a step by
+    step guide of what people should be thinking about and something about
+    general philosophy, accumulated wisdom, what's a good idea, what
+    isn't, and so forth.  It occurs to me that quite a bit of this isn't
+    News::Gateway-specific and would make a good Usenet FAQ.
+  * Write a guide to writing modules.
+  * Build local queuing and message logging into an example so that people
+    can see how to do it.
+
+REWRITE MODULES
+
+  * Do full PGPMoose including sending posts on to other moderated groups.
+  * Fix the mailpath module to deal with qmail Received headers that
+    contain unresolvable addresses or identd responses.
+  * Write a news to mail gateway module.
+  * Modify the cleanbody module to finish its scan even if it finds invalid
+    characters.
+  * Fix the header module to allow multiple directives affecting the same
+    header to be given and performed in sequence.
+  * Modify the mailtonews module so that checks are performed last (or
+    first?) whenever possible, to allow for more easy restarting of the
+    module.
+  * Rework the support in the newsgroups module for mail to news
+    gatewaying.  We ideally want to support everything that my original
+    gateway script could do in terms of wildcarding and automatically
+    figuring out the group name from the address.
+  * Consider keeping a message ID cache and using that to reject
+    duplicates.  This may be much more robust than the current attempt to
+    reject duplicates in the newsgroups module.  [Igor Chudov]
+  * The whitelist module (and perhaps the keywords module) should really
+    allow comments to be added after the address and keyword.
+  * Allow the whitelist and keyword modules to take db files instead of
+    just flat files.
+  * The fact that the keyword module takes an argument rather than a
+    configuration directive specifying the keyword regex violates the
+    standard distinction between arguments and configuration file
+    directives.
+  * The anykeyword module should take the same directive to specify the
+    regex for keywords as the keyword module.
+  * Expand the headers module to be able to do more manipulations of
+    headers and behave properly in cases of existence of multiple headers.
+    It should really provide an interface to all of the header
+    manipulations News::Article supports.
+  * Authenticate posts via checking signatures with PGP against a keyring
+    for known authors.
+  * Allow empty articles (normally rejected by INN) by adding some text if
+    so desired.
+  * Work out how to handle multiline header additions.
+  * The keywords module should really allow for some keywords which are
+    usable only in conjuction with other keywords.
+  * The newsgroups module still multi-posts if the incoming message (sent
+    to multiple submission addresses) already has a Newsgroups header.
+    This shouldn't happen in practice, but....  Message id caching could
+    take care of this too.
+  * The nobinaries module should actually understand multipart posts and
+    delimiters and know where to look for other headers so as not to use
+    the hack body searching it uses right now.
+  * Fix the nobinaries module to take in the various tunable parameters
+    as configuration directives.
+  * The ifempty directive in the headers module needs to special-case a
+    Subject header of "(none)" due to the action of the mailtonews module.
+
+UTILITY MODULES
+
+  * Make the configuration file parsing code more robust, including better
+    escaping and better handling of line continuation, as well as more
+    support for feeding it configuration directives directly rather than
+    from a file.  [Jon Lennox]
+  * Consider having parse_config() do something other than call error() for
+    syntax errors.
+  * The mail_error() message is mail to news specific and has a variety of
+    other problems (may be partially qmail-specific, although not in a
+    harmful way).
+  * Possibly write a regex utility module for the use of keywords and
+    anykeyword (for starters).
