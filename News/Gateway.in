@@ -1,7 +1,7 @@
 # News::Gateway -- Mail to news gateway or robomoderator.  -*- perl -*-
-# $Id: Gateway.in,v 0.40 1998/01/01 15:15:11 eagle Exp $
+# $Id: Gateway.in,v 0.42 1998/02/19 00:36:51 eagle Exp $
 #
-# Copyright 1997 by Russ Allbery <rra@stanford.edu>
+# Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
@@ -23,10 +23,11 @@ use News::Article ();
 use News::FormReply ();
 
 use strict;
-use vars qw($AUTOLOAD $FAILCODE %HOOKS $ID $VERSION);
+use vars qw($AUTOLOAD $FAILCODE %HOOKS $VERSION);
 
-# Extract current version number from RCS information.
-($VERSION = (split (' ', q$Revision: 0.40 $ ))[1]) =~ s/\.(\d)$/.0$1/;
+# The current News::Gateway version number, which is not the same as the RCS
+# revision of this file.  Picked up during build time.
+# @@ VERSION
 
 # Exit code that should be used to indicate permanent failure.  This should
 # be 100 for qmail and probably be 64 for sendmail (EX_USAGE), although you
@@ -166,7 +167,7 @@ sub modules {
             my $method = $module . '_init';
             $self->$method (@{+shift});
         }
-        push (@{$$self{mesghooks}}, $module . '_mesg');
+        push (@{$$self{mesghooks}}, $module);
         for (@hook) {
             $$self{confhooks}{$_} = $module . '_conf';
         }
@@ -188,35 +189,19 @@ sub read {
     $$self{article}->read (@_);
 }
 
-# Apply each of the message rewrite or check hooks to the article in the
-# order in which they were given.  Each hook should return undef on success
-# and a string indicating the error message on failure; as soon as any hook
-# fails, this method aborts and returns a list consisting of the name of the
-# module that failed and the error message in an array context or the
-# message prepended with the name of the module in a scalar context.
+# Apply the given modules, or if none are given, apply all of the ones we
+# have pending.  Each hook should return undef on success and a string
+# indicating the error message on failure; as soon as any hook fails, this
+# method aborts and returns a list consisting of the name of the module that
+# failed and the error message in an array context or the message prepended
+# with the name of the module in a scalar context.
 sub apply {
     my $self = shift;
-    for (@{$$self{mesghooks}}) {
-        my $error = $self->$_ ();
-        if ($error) {
-            my $module;
-            ($module = $_) =~ s/_mesg$//;
-            return wantarray ? ($module, $error) : "$module: $error";
-        }
-    }
-}
-
-# Post the article.  Returns undef if posting succeeds and the error message
-# if it fails.
-sub post {
-    my ($self, $spool) = @_;
-    eval { $$self{article}->post () };
-    if ($@) {
-        my $error = $@;
-        chomp $error;
-        return $error;
-    } else {
-        return undef;
+    my @modules = @_ ? @_ : @{$$self{mesghooks}};
+    for (@modules) {
+        my $module = $_ . '_mesg';
+        my $error = $self->$module ();
+        if ($error) { return wantarray ? ($_, $error) : "$_: $error" }
     }
 }
 

@@ -1,5 +1,5 @@
 # mailtonews.al -- Translate e-mail into a news article.  -*- perl -*-
-# $Id: mailtonews.al,v 0.6 1997/10/20 01:29:50 eagle Exp $
+# $Id: mailtonews.al,v 0.8 1998/02/23 00:09:01 eagle Exp $
 #
 # Copyright 1997 by Russ Allbery <rra@stanford.edu>
 #
@@ -81,12 +81,14 @@ sub mailtonews_mesg {
     # in the In-Reply-To header and just carry References over.  We
     # therefore try to extract a message ID out of the In-Reply-To header
     # and append it to the References line if it isn't already there.  This
-    # is a hack, but I think it's a necessary one.
+    # is a hack, but I think it's a necessary one.  This regex probably
+    # still isn't quite what we want.  We don't refold the References header
+    # here.  We probably should.
     my $inreplyto = $article->header ('in-reply-to');
-    if ($inreplyto && /^(<[^\@>]+\@[^.>]+\.[^>]+[^.>]>)$/) {
+    if ($inreplyto && $inreplyto =~ /(<[^\@>]+\@[^.>]+\.[^>]+[^.>]>)/) {
         $inreplyto = $1;
         my $references = $article->header ('references');
-        if ((split (' ', $references))[-1] ne $inreplyto) {
+        if ($references && (split (' ', $references))[-1] ne $inreplyto) {
             $references .= ' ' . $inreplyto;
             $article->set_headers (references => $references);
         }

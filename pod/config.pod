@@ -6,6 +6,13 @@ News::Gateway programs will make use of this module.
 
 =over 4
 
+=item config (DIRECTIVE, ARGUMENT [, ARGUMENT ...])
+
+Calls the registered module callbacks for all modules who have expressed
+an interest in C<DIRECTIVE>.  This bypasses any parsing, and the arguments
+are given to the callbacks exactly as passed in.  C<DIRECTIVE> is
+case-insensitive.
+
 =item config_file (FILE | HANDLE)
 
 Reads in configuration directives from the supplied file name or file
@@ -27,7 +34,7 @@ long comment about this newsgroup":
     header x-comment add \
            "This is a long comment about this newsgroup"
 
-Multiple configuration files can be read by calling C<read_config()>
+Multiple configuration files can be read by calling C<config_file()>
 multiple times.  One handy trick for simple scripts using News::Gateway is
 to put the configuration lines at the end of the script after an __END__
 and then pass them to News::Gateway with:

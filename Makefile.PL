@@ -1,5 +1,5 @@
 # Makefile.PL for News::Gateway module
-# $Id: Makefile.PL,v 0.8 1997/12/25 10:27:57 eagle Exp $
+# $Id: Makefile.PL,v 0.9 1998/02/19 00:59:35 eagle Exp $
 use ExtUtils::MakeMaker;
 
 # We want to automatically detect and make a list of all add-on modules in
@@ -29,7 +29,7 @@ WriteMakefile (
                       'makepm.PL'  => 'News/Gateway.pm' },
     PM           => $modules,
     PREREQ_PM    => { 'News::Article' => 1.07 },
-    VERSION_FROM => 'News/Gateway.in',
+    VERSION_FROM => 'VERSION',
     dist         => { COMPRESS => 'gzip', SUFFIX => 'gz' },
     realclean    => { FILES => 'News/Gateway.pod News/Gateway.pm' }
 );

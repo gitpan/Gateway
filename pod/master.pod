@@ -5,7 +5,7 @@ News::Gateway - Tools for gatewaying messages between news and mail.
 =head1 SYNOPSIS
 
     use News::Gateway;
-    my $gateway = News::Gateway::new (1, 'user@example.com');
+    my $gateway = News::Gateway->new (1, 'user@example.com');
     $gateway->modules ('headers', mailtonews => ['misc.test']);
     $gateway->config_file ('/path/to/config/file');
     $gateway->read (\*STDIN);
@@ -61,7 +61,7 @@ First, the standard methods in the order in which they are normally
 called.  Some of these methods, like C<modules()>, are normally called
 only once, while others, like C<read()>, may be called multiple times for
 multiple incoming messages.  You'll almost certainly also want to read
-about the C<config_file()> and C<config_line()> directives below in
+about the C<config()>, C<config_line()>, and C<post()> directives below in
 L<"UTILITY MODULES">.
 
 =over 4
@@ -105,14 +105,15 @@ This method constructs a new News::Article object and calls its method, so
 it will always support essentially the same arguments as the corresponding
 News::Article C<read()> method.
 
-=item apply ()
+=item apply (MODULES)
 
-This method hands the message off to each module in the order in which
-they were given to C<modules()> and lets them do whatever they wish with
-the article.  If a module returns undef, it's presumed to be successful
-and the message is given to the next module.  If a module returns a
-string, it's considered to be a failure message and C<parse_message()>
-stops.
+This method hands the message off to each module given (if no modules are
+given, the message is given to each module registered by C<modules()> in
+the order in which they were given to C<modules()>) and lets them do
+whatever they wish with the article.  If a module returns undef, it's
+presumed to be successful and the message is given to the next module.  If
+a module returns a string, it's considered to be a failure message and
+C<apply()> stops.
 
 If all modules succeed, C<apply()> returns undef or the empty list.  If a
 module fails, C<apply()> returns a list consisting of the module which
@@ -122,13 +123,6 @@ failed with in a scalar context.
 
 The calling script should then look at the failure message and take the
 appropriate action.
-
-=item post ()
-
-Tells the underlying News::Article object to post itself, returning the
-error or undef on success.  Before this method is called, the message
-headers should be rewritten into ones appropriate for a news message; this
-is one of the purposes of the modules.
 
 =back
 
@@ -199,6 +193,11 @@ News::Gateway method.
 
 News::Gateway attempted to open a file (probably the configuration file)
 and failed for the given reason.
+
+=item Unable to load %s: %s
+
+One of the modules (either rewrite or utility) you used requires an
+external Perl module and was unable to load it.
 
 =item Unknown module %s
 

@@ -1,5 +1,5 @@
 # mailpath.al -- Generates an X-Mail-Path from Received.  -*- perl -*-
-# $Id: mailpath.al,v 0.4 1997/08/30 21:56:40 eagle Exp $
+# $Id: mailpath.al,v 0.6 1998/02/20 08:04:33 eagle Exp $
 #
 # Copyright 1997 by Russ Allbery <rra@stanford.edu>
 # Based heavily on code by Andrew Gierth <andrew@erlenstar.demon.co.uk>
@@ -31,7 +31,11 @@ package News::Gateway;
 #   Received: from foobar by...
 #             (peer crosschecked as: [1.2.3.4])
 #   Received: from foobar.baz.com (1.2.3.4) by...
+#   Received: from foobar.baz.com (@1.2.3.4) by...
+#   Received: from foobar.baz.com (something@1.2.3.4) by...
 #   Received: from foobar.baz.com (HELO foobar) (1.2.3.4) by...
+#   Received: from unknown (HELO foobar) (1.2.3.4) by...
+#   Received: from foobar.baz.com [1.2.3.4] by...
 #   Received: from foobar by...
 #
 # The above headers would be transformed respectively to:
@@ -43,6 +47,10 @@ package News::Gateway;
 #   foobar[1.2.3.4]
 #   foobar.baz.com
 #   foobar.baz.com
+#   something@foobar.baz.com
+#   foobar.baz.com
+#   foobar[1.2.3.4]
+#   foobar.baz.com[1.2.3.4]
 #   foobar[UNTRUSTED]
 #
 # The envelope sender is then added as the rightmost element.
@@ -57,25 +65,35 @@ sub mailpath_mesg {
         /^Received: \s+ from \s+                # Required token
          ([\w.@-]+)? \s*                        # Identified host name (1)
          (?:
-          (?:\(HELO\ \S+\) \s*)?                # qmail HELO notification
+          (?:\(HELO\ (\S+)\) \s*)?              # qmail HELO argument (2)
           \((?:                                 # First comment after host
-           (\d+\.\d+\.\d+\.\d+) |               # qmail IP address (2)
+           (?:
+            (?:(\S*)\@)?                        # ident information (3)
+            (\d+\.\d+\.\d+\.\d+)                # qmail IP address (4)
+           ) |
            (?:
             really |                            # No real host name
-            ([\w.@-]+)                          # The real host name (3)
+            ([\w.@-]+)                          # The real host name (5)
            \ )?
-           \[(\d+\.\d+\.\d+\.\d+)\]             # The IP address (4)
-          ) |                                   # Alternately skip all that
+           \[(\d+\.\d+\.\d+\.\d+)\]             # The IP address (6)
+          )
+          |                                     # Alternately....
+          \[(\d+\.\d+\.\d+\.\d+)\]              # The IP address (7)
+          |
           .* \(peer\ crosschecked\ as: \s+      # UUNet relay machines
-          (?:([\w.@-]+)\s+)?                    # The real host name (5)
-          \[(\d+\.\d+\.\d+\.\d+)\]              # The IP address (6)
+          (?:([\w.@-]+)\s+)?                    # The real host name (8)
+          \[(\d+\.\d+\.\d+\.\d+)\]              # The IP address (9)
          )?
         /ixs or next;
-        $element = $5, next if $5;
+        $element = $8, next if $8;
+        $element = $1 . "[$9]", next if $9;
+        $element = $3 . '@' . $1, next if ($4 and $3 and $1 ne 'unknown');
+        $element = $1, next if ($4 and $1 ne 'unknown');
+        $element = $2 . "[$4]", next if ($4 and $2);
+        $element = $4, next if $4;
+        $element = $5, next if ($5 and index ($5, '.') > 0);
         $element = $1 . "[$6]", next if $6;
-        $element = $1, next if $2;
-        $element = $3, next if ($3 and index ($3, '.') > 0);
-        $element = $1 . "[$4]", next if $4;
+        $element = $1 . "[$7]", next if $7;
         $element = $1 . '[UNTRUSTED]' if $1;
     } continue {
         push (@path, $element) if $element;

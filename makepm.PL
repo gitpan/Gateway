@@ -1,5 +1,11 @@
 # makepm.PL -- Builds News/Gateway.pm from News/Gateway.in.
-# $Id: makepm.PL,v 0.1 1997/12/23 12:34:51 eagle Exp $
+# $Id: makepm.PL,v 0.2 1998/02/19 01:00:16 eagle Exp $
+
+# First, grab the line to set the version number, since we'll need to
+# substitute that in to News/Gateway.pm when we build it.
+open (VERSION, 'VERSION') or die "Cannot open VERSION: $!\n";
+my $version = <VERSION>;
+close VERSION;
 
 # Build a list of all of the available modules and their exported interface
 # by trolling through the .al files in the modules directory and looking for
@@ -37,10 +43,12 @@ for (keys %interfaces) {
 # We now have a complete hash of the modules and their interfaces in
 # %interfaces.  Open up our input file (News/Gateway.in) and our output
 # file, the final module (News/Gateway.pm) and replace the interface section
-# with our generated interface.
+# with our generated interface.  We also replace the marker for the version
+# number with the version string read in from VERSION above.
 open (IN, 'News/Gateway.in') or die "Cannot open News/Gateway.in: $!\n";
 open (OUT, '>News/Gateway.pm') or die "Cannot create News/Gateway.pm: $!\n";
 while (<IN>) {
+    if (/^\# @@ VERSION/) { print OUT $version; next }
     print OUT;
     if (/^\# \@\@ Begin automatically generated section/) {
         print OUT '%HOOKS = (';

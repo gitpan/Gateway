@@ -87,3 +87,23 @@ Tim Skirvin <tskirvin@uiuc.edu>
     First person to use my original gateway script as a robomoderator
     (with modifications).  Also gave me the idea to check for base64 in
     Content-Transfer-Encoding when checking for binaries.
+
+Christopher Davis <ckd@loiosh.kei.com>
+    Provided the original script on which listgate was based, as well as
+    motivation for writing the listgate example, and let me use his ideas
+    and his code for it.  Also provided the m4 file and the documentation,
+    and provided the initial implementation of the mungeids module and the
+    post_ihave() and post_program() methods.
+
+Ollivier Robert <roberto@keltia.freenix.fr>
+    Found a bug in the newsgroups module (addresses not being downcased
+    before being checked against regex patterns that were downcased).
+
+Jeff Garzik <jeff.garzik@spinne.com>
+    Found a bug in the documentation of how to call the News::Gateway
+    constructor and also pointed out that post() should take a hostname or
+    Net::NNTP connection as an optional argument.
+
+Tom Hughes <tom@compton.demon.co.uk>
+    Found various bugs in mailtonews' extraction of message IDs from the
+    In-Reply-To header.

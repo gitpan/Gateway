@@ -1,5 +1,5 @@
 # newsgroups.al -- Logic to build Newsgroups header.  -*- perl -*-
-# $Id: newsgroups.al,v 0.7 1997/10/24 06:11:11 eagle Exp $
+# $Id: newsgroups.al,v 0.8 1998/01/19 12:34:36 eagle Exp $
 #
 # Copyright 1997 by Russ Allbery <rra@stanford.edu>
 #
@@ -162,7 +162,7 @@ sub newsgroups_mesg {
                 my $patterns = $$self{newsgroups}{patterns};
                 my $grouplist = $$self{newsgroups}{grouplist};
                 for ($group = 0; $group < @$patterns; $group++) {
-                    if (&{$$patterns[$group]} ($address)) {
+                    if (&{$$patterns[$group]} (lc $address)) {
                         push (@groups, $$grouplist[$group]);
                         last;
                     }

@@ -1,7 +1,7 @@
 # config.al -- Configuration file parsing.  -*- perl -*-
-# $Id: config.al,v 0.1 1997/12/30 16:45:20 eagle Exp $
+# $Id: config.al,v 0.2 1998/01/19 10:00:08 eagle Exp $
 #
-# Copyright 1997 by Russ Allbery <rra@stanford.edu>
+# Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
 #
 # This program is free software; you may redistribute it and/or modify it
 # under the same terms as Perl itself.  This is a News::Gateway module and
@@ -13,13 +13,25 @@ package News::Gateway;
 # Methods
 ############################################################################
 
+# The core method.  Takes a configuration directive and a list of arguments
+# and calls the appropriate module callbacks with those directives and
+# arguments.  We fail with an error if no hooks are registered.  Directives
+# are case-insensitive.
+sub config {
+    my ($self, $directive, @arguments) = @_;
+    my $method = $$self{confhooks}{lc $directive};
+    unless (defined $method) {
+        $self->error ("Unknown configuration directive $directive");
+    }
+    $self->$method (lc $directive, @arguments);
+}
+
 # Parses a single line, splitting it on whitespace, and returns the
 # resulting array.  Double quotes are supported for arguments that have
 # embedded whitespace, and backslashes inside double quotes escape the next
 # character (whatever it is).  Any text outside of double quotes is
-# automatically lowercased (to support directives in either case), but
-# anything inside quotes is left alone.  We can't use Text::ParseWords
-# because it's too smart for its own good.
+# automatically lowercased, but anything inside quotes is left alone.  We
+# can't use Text::ParseWords because it's too smart for its own good.
 sub config_parse {
     my ($self, $line) = @_;
     my (@args, $snippet);
@@ -44,17 +56,11 @@ sub config_parse {
 }
 
 # Parses a single configuration line, breaking up the arguments using
-# parse_line and then passing them on to the registered callback for that
-# directive.  If no callback is registered, we error, which should hopefully
-# give us the right error message in all cases.
+# config_parse() and then passing them on to config().
 sub config_line {
     my ($self, $line) = @_;
     my @line = $self->config_parse ($line);
-    my $method = $$self{confhooks}{$line[0]};
-    unless (defined $method) {
-        $self->error ("Unknown configuration directive $line[0]");
-    }
-    $self->$method (@line);
+    $self->config (@line);
 }
 
 # Reads in a configuration file, taking either a scalar or a reference to a
