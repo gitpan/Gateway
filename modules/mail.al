@@ -1,7 +1,7 @@
 # mail.al -- Forward or reply to a submission.  -*- perl -*-
-# $Id: mail.al,v 0.2 1997/09/15 02:48:34 eagle Exp $
+# $Id: mail.al,v 0.4 1998/04/12 17:32:51 eagle Exp $
 #
-# Copyright 1997 by Russ Allbery <rra@stanford.edu>
+# Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
 #
 # This program is free software; you may redistribute it and/or modify it
 # under the same terms as Perl itself.  This is a News::Gateway module and
@@ -12,6 +12,24 @@ package News::Gateway;
 ############################################################################
 # Methods
 ############################################################################
+
+# Mail the article to someone.  If no address is supplied, we use the
+# addresses given in the message.  This is just a wrapper around a
+# News::Article method.  Returns true on success, false on failure.
+sub mail {
+    my ($self, @addresses) = @_;
+    if (@addresses) {
+        $$self{article}->mail (@addresses);
+    } else {
+        $$self{article}->mail ();
+    }
+}
+
+# The old way.  THIS IS DEPRECATED!!
+sub mail_forward {
+    my $self = shift;
+    $self->mail (@_);
+}
 
 # Actually bounces the message.  Don't do this except as a last resort.
 sub mail_bounce {
@@ -53,14 +71,6 @@ EOR
     exit 0;
 }
 
-# Used to forward a message along to another address (probably a human
-# moderator).  Takes the address to which to resend it as an argument.
-# Returns true if sending the mail succeeded, false on failure.
-sub mail_forward {
-    my ($self, $address) = @_;
-    $$self{article}->mail ($address);
-}
-
 # Generates a reply from a template in a file.  Takes the file name as an
 # argument and then a list of sources of variables (either references to
 # hashes or references to code).  In addition, the following variables will
@@ -76,6 +86,8 @@ sub mail_forward {
 sub mail_filereply {
     my $self = shift;
     my $filename = shift;
+    eval { require News::FormReply };
+    if ($@) { $self->error ("Unable to load News::FormReply: $@") }
     my $article = $$self{article};
     my $source = {
         BODY       => scalar ($article->body ()),

@@ -1,7 +1,7 @@
 # mailtonews.al -- Translate e-mail into a news article.  -*- perl -*-
-# $Id: mailtonews.al,v 0.8 1998/02/23 00:09:01 eagle Exp $
+# $Id: mailtonews.al,v 0.13 1998/04/15 07:14:18 eagle Exp $
 #
-# Copyright 1997 by Russ Allbery <rra@stanford.edu>
+# Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
 #
 # This program is free software; you may redistribute it and/or modify it
 # under the same terms as Perl itself.  This is a News::Gateway module and
@@ -38,9 +38,14 @@ sub mailtonews_mesg {
     my $article = $$self{article};
 
     # Make sure that we have a From header.  If not, we reject this article.
-    unless ($article->header ('from')) {
-        return "Missing required From header";
-    }
+    # We also turn any newlines in the From header into spaces, since
+    # otherwise INN may reject the article incorrectly.
+    my $from = $article->header ('from')
+        or return 'Missing required From header';
+    if ($from =~ tr/\n/ /) { $article->set_headers (from => $from) }
+
+    # Make sure the body isn't empty.  If it is, we reject this article.
+    if ($article->lines () == 0) { return 'Empty body' }
 
     # Ensure that we have a valid Newsgroups header.  If we don't have one,
     # add one with the default group; otherwise, strip out whitespace and
@@ -56,7 +61,7 @@ sub mailtonews_mesg {
     unless ($newsgroups) {
         $newsgroups = $$self{mailtonews} if defined $$self{mailtonews};
     }
-    return "No Newsgroups header or default group" unless $newsgroups;
+    return 'No Newsgroups header or default group' unless $newsgroups;
     $article->set_headers (newsgroups => $newsgroups);
 
     # Drop headers that the news server would refuse rename a few others
@@ -72,10 +77,12 @@ sub mailtonews_mesg {
 
     # Check the mail message ID and see if it looks reasonable.  If not,
     # rename it so that we'll generate our own.  Note that news servers may
-    # reject message IDs with a trailing period, so don't allow them.
-    my $messageid = $article->header ('message-id');
+    # reject message IDs with a trailing period, so don't allow them.  This
+    # is not a complete check; a complete check should really use the code
+    # from INN and needs more than a simple regex.
+    my $id = $article->header ('message-id');
     $article->rename_header ('message-id', 'x-original-message-id', 'add')
-        if ($messageid && $messageid !~ /^<[^\@>]+\@[^.>]+\.[^>]+[^.>]>$/);
+        if ($id && $id !~ /^<[^\s\@>]+\@[^\s.>]+(\.[^.\s>]+)+>$/);
 
     # Many mail clients put the message ID of the message being replied to
     # in the In-Reply-To header and just carry References over.  We
@@ -84,12 +91,14 @@ sub mailtonews_mesg {
     # is a hack, but I think it's a necessary one.  This regex probably
     # still isn't quite what we want.  We don't refold the References header
     # here.  We probably should.
-    my $inreplyto = $article->header ('in-reply-to');
-    if ($inreplyto && $inreplyto =~ /(<[^\@>]+\@[^.>]+\.[^>]+[^.>]>)/) {
-        $inreplyto = $1;
+    $id = $article->header ('in-reply-to');
+    if ($id && $id =~ /(<[^\s\@>]+\@[^\s.>]+(\.[^.\s>]+)+>)/) {
+        $id = $1;
         my $references = $article->header ('references');
-        if ($references && (split (' ', $references))[-1] ne $inreplyto) {
-            $references .= ' ' . $inreplyto;
+        if (!$references) {
+            $article->set_headers (references => $id);
+        } elsif ((split (' ', $references))[-1] ne $id) {
+            $references .= ' ' . $id;
             $article->set_headers (references => $references);
         }
     }

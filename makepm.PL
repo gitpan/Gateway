@@ -1,9 +1,11 @@
 # makepm.PL -- Builds News/Gateway.pm from News/Gateway.in.
-# $Id: makepm.PL,v 0.2 1998/02/19 01:00:16 eagle Exp $
+# $Id: makepm.PL,v 0.3 1998/04/12 11:35:42 eagle Exp $
 
 # First, grab the line to set the version number, since we'll need to
-# substitute that in to News/Gateway.pm when we build it.
-open (VERSION, 'VERSION') or die "Cannot open VERSION: $!\n";
+# substitute that in to News/Gateway.pm when we build it.  It's the second
+# line of VERSION.pm.
+open (VERSION, 'VERSION.pm') or die "Cannot open VERSION.pm: $!\n";
+<VERSION>;
 my $version = <VERSION>;
 close VERSION;
 

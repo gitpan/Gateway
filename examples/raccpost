@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-$version = q$Id: raccpost,v 0.4 1998/01/01 15:12:59 eagle Exp $;
+$version = q$Id: raccpost,v 0.6 1998/04/14 09:01:57 eagle Exp $;
 #
 # raccpost -- Posting script for rec.arts.comics.creative.
 #             Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
@@ -34,17 +34,24 @@ use News::Gateway qw();
 use strict;
 use vars qw($list $maintainer $version);
 
+# Pull a -f flag off the command line if one is supplied.
+my $force = shift if ($ARGV[0] eq '-f');
+
 # Create our News::Gateway object, setting it interactive, and initialize
 # the modules we're going to use.  Note that all posts which reach this
 # point have gone through raccmod and already have a Newsgroups header.
 my $gateway = News::Gateway->new (1, $maintainer);
-$gateway->modules ('newsgroups',
+$gateway->modules (newsgroups => [$ARGV[0] || 'rec.arts.comics.creative'],
                    'headers',
                    mailtonews => ['rec.arts.comics.creative'],
                    'cleanbody');
 
 # Read in our configuration details from the end of this script.
 $gateway->config_file (\*DATA);
+
+# If we were given a command-line argument of -f, that means to allow
+# crossposts to any groups.
+$gateway->config ('group', '/./') if $force;
 
 # Read the message in and try to post it.  If we get any errors from the
 # rewrites, just send them through the normal error handling (which will
@@ -63,7 +70,7 @@ if ($error) {
     my $article = $gateway->get_article ();
     $article->add_headers (to => 'racc@eyrie.org');
     $article->drop_headers ('approved');
-    $gateway->mail_forward ($list);
+    $gateway->mail ($list);
 }    
 
 __END__

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-$version = q$Id: racrmod,v 0.2 1998/01/01 18:36:45 eagle Exp $;
+$version = q$Id: racrmod,v 0.3 1998/04/12 12:13:39 eagle Exp $;
 #
 # racrmod -- Robomoderator script for rec.arts.comics.reviews.
 #            Copyright 1998 by Russ Allbery <rra@stanford.edu>
@@ -62,7 +62,7 @@ unless ($error) {
 if ($error) {
     my $article = $gateway->get_article ();
     $article->add_headers ('x-rejected-for' => $error);
-    $gateway->mail_forward ($moderator)
+    $gateway->mail ($moderator)
         or $gateway->error ('Unable to resend to moderator');
 }
 __END__
@@ -71,15 +71,15 @@ __END__
 # Configuration directives
 ############################################################################
 
-header approved           replace XXX
-header cc                 drop
-header date               rename
-header path               drop
-header to                 drop
+header approved replace XXX
+header cc       drop
+header date     rename
+header path     drop
+header to       drop
 keywords XXX/racr/keywords
 group /^rec.arts.comics\..*/
 crosspost max 2
 crosspost reject rec.arts.comics.info
 followup  remove rec.arts.comics.reviews
 followup  max 3
-bodyheaders newsgroups x-no-archive
+bodyheaders "newsgroups" "x-no-archive"

@@ -1,5 +1,5 @@
-# News::Gateway -- Mail to news gateway or robomoderator.  -*- perl -*-
-# $Id: Gateway.in,v 0.42 1998/02/19 00:36:51 eagle Exp $
+# News::Gateway -- Mail and news gatewaying toolkit.  -*- perl -*-
+# $Id: Gateway.in,v 0.43 1998/04/12 17:26:47 eagle Exp $
 #
 # Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>
 #
@@ -20,7 +20,6 @@ package News::Gateway;
 require 5.003;
 
 use News::Article ();
-use News::FormReply ();
 
 use strict;
 use vars qw($AUTOLOAD $FAILCODE %HOOKS $VERSION);
@@ -42,11 +41,11 @@ $FAILCODE = 64;
 
 # News::Gateway implements a generic robomoderation framework that provides
 # a series of setup and utility functions and the means for various modules
-# to be easily plugged into a generic framework.  Article checks and
-# rewrites are performed by those modules, rather than the core code.  The
-# following table is used to associate modules with various configuration
-# file directives as well as building lists of message analysis functions
-# which need to be called.
+# to be easily plugged into a generic framework.  All article checks and
+# rewrites are performed by modules, not this core code.  The following
+# table is used to associate modules with configuration file directives so
+# that configuration information can be passed to the modules, as well as to
+# tell News::Gateway what modules exist.
 #
 # The general syntax is as follows:
 #
@@ -95,11 +94,12 @@ sub AUTOLOAD {
     # fly to avoid annoying error messages at shutdown or use time.
     #
     # We have to handle a few things specially here.  First, if the sub that
-    # we're trying and failing to autoload is either error() or mail_error()
-    # (which may be called by error()), then we have a major problem and
-    # need to avoid calling more methods.  Second, if the first argument to
-    # the sub isn't a reference (meaning that they're not calling a method),
-    # we can't then call our error() method since we don't have an object.
+    # we're trying and failing to autoload is mail_error() (which may be
+    # called by error()), then we have a major problem and need to avoid
+    # calling more methods.  Second, if the first argument to the sub isn't
+    # a reference (meaning that they're not calling a method), we can't then
+    # call our error() method since we don't have an object.  (This should
+    # really be fixed by making error() robust in that case....)
     my $save = $@;
     eval { require $name };
     if ($@) {
@@ -139,6 +139,7 @@ sub new {
     my $class = ref $that || $that;
     my ($interactive, $maintainer, $envelope) = @_;
     unless ($maintainer) { $maintainer = (getpwuid ($<))[0] }
+    unless ($envelope) { $envelope = $maintainer }
     my $self = {
         confhooks   => {},
         mesghooks   => [],
@@ -168,9 +169,7 @@ sub modules {
             $self->$method (@{+shift});
         }
         push (@{$$self{mesghooks}}, $module);
-        for (@hook) {
-            $$self{confhooks}{$_} = $module . '_conf';
-        }
+        for (@hook) { push (@{$$self{confhooks}{$_}}, $module) }
     }
 }
 
@@ -182,11 +181,10 @@ sub modules {
 # Read in the article from a source, returning undef if this fails (either
 # because no data is available or because the size limits are exceeded) and
 # the number of bytes read if it succeeds.  This is mostly just a wrapper
-# around News::Article::read().
+# around the News::Article constructor.
 sub read {
     my $self = shift;
-    $$self{article} = new News::Article;
-    $$self{article}->read (@_);
+    $$self{article} = News::Article->new (@_);
 }
 
 # Apply the given modules, or if none are given, apply all of the ones we
@@ -229,14 +227,9 @@ sub error {
 ############################################################################
 
 # Return a reference to the underlying article.
-sub get_article {
-    $_[0]{article};
-}
+sub get_article { $_[0]{article} }
 
 # Replace the current article with a new News::Article reference.
-sub set_article {
-    my $self = shift;
-    $$self{article} = shift;
-}
+sub set_article { $_[0]{article} = $_[1] }
 
 1;

@@ -1,9 +1,9 @@
-                        News::Gateway version 0.40
+                        News::Gateway version 0.42
            (Robomoderation and mail to news gatewaying toolkit)
 
-  Copyright 1997 by Russ Allbery <rra@stanford.edu>.  All rights reserved.
-  This program is free software; you may redistribute it and/or modify it
-  under the same terms as Perl itself.
+  Copyright 1997, 1998 by Russ Allbery <rra@stanford.edu>.  This program
+  is free software; you may redistribute it and/or modify it under the
+  same terms as Perl itself.
 
   Individual modules and examples may be written by other authors; if so,
   they will have their own copyright information at the beginning of the
@@ -61,12 +61,12 @@ REQUIREMENTS
 
   News::Gateway also requires Andrew Gierth's excellent News::Article
   module (and in fact can be viewed largely as a wrapper around that
-  module).  It requires no additional modules itself, but News::Article
-  also requires Net::NNTP and PGP::Sign, both of which are on CPAN.
-  News::Article itself is not on CPAN at this writing, but can be obtained
-  from <URL:http://www.erlenstar.demon.co.uk/perl/index.html>.  PGP::Sign
-  can be obtained from <URL:ftp://ftp.eyrie.org/pub/software/modules/>,
-  the same location where you will find the latest version of this module.
+  module).  It may require Net::NNTP depending on what you're doing, and
+  News::Article also requires Net::NNTP and PGP::Sign, both of which are
+  on CPAN.  All required modules are available from CPAN.  News::Article
+  is also at <URL:http://www.erlenstar.demon.co.uk/perl/index.html>, and
+  both the latest version of this module and PGP::Sign can be obtained
+  from <URL:ftp://ftp.eyrie.org/pub/software/modules/>.
 
 
 OVERVIEW
@@ -92,7 +92,8 @@ OVERVIEW
   and just do one simple thing the same way to every message.  Second, for
   those modules that do require additional information, News::Gateway can
   read and parse a configuration file and pass directives along to
-  individual modules.  Each module registers an interface that tells the
+  individual modules, or you can give it configuration directives
+  directly.  Each module registers an interface that tells the
   News::Gateway core code which directives it's interested in.  Third,
   there are some pieces of information modules need to know which may be
   invocation-specific.  For example, for a mail to news gateway, the same
@@ -110,7 +111,7 @@ OVERVIEW
   documentation is in POD format and can therefore either be read straight
   or (preferably) by running perldoc on the POD file.
 
-  More extensive documentation will hopefully be coming in the future.
+  Some additional documentation is also available in the doc directory.
 
 
 INSTALLATION
@@ -124,9 +125,9 @@ INSTALLATION
           make
           make install
 
-  (There is no test suite for this module, and in fact a test suite would
-  be somewhat difficult to do, so it's unlikely one will be written in the
-  near future.)  You will probably have to do the last step as root.
+  (There is no test suite for this module yet, but it's high on the list
+  of things to be added in the future.)  You will probably have to do the
+  last step as root.
 
   If you would instead like to install News::Gateway in your own account,
   you can use the standard Perl module facility for doing so.  Just

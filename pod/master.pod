@@ -61,7 +61,7 @@ First, the standard methods in the order in which they are normally
 called.  Some of these methods, like C<modules()>, are normally called
 only once, while others, like C<read()>, may be called multiple times for
 multiple incoming messages.  You'll almost certainly also want to read
-about the C<config()>, C<config_line()>, and C<post()> directives below in
+about the C<config()>, C<config_file()>, and C<post()> directives below in
 L<"UTILITY MODULES">.
 
 =over 4
@@ -72,9 +72,10 @@ Sets the list of modules that should be applied to each incoming message.
 The list of modules is cumulative; in other words, C<modules()> can be
 called multiple times to add more modules to the list of ones which will
 be applied.  This method both adds each supplied module name to the list
-of modules that will be run by C<apply()> and sets up callbacks so that
-any configuration directives that C<MODULE> is interested in will be
-passed along to it when configuration directives are processed.
+of modules that will be run if C<apply()> is called with no arguments and
+sets up callbacks so that any configuration directives that C<MODULE> is
+interested in will be passed along to it when configuration directives are
+processed.
 
 Some modules may take arguments; if so, they can be passed in as an
 anonymous array associated with the module.  For example:
@@ -86,8 +87,9 @@ argument to it.
 
 Modules will be run in the order they are given to C<modules()>.
 
-C<modules()> should always be called before any call to C<apply()> or
-C<config_file()> that those modules are supposed to affect.
+C<modules()> should always be called before any call to C<apply()>,
+C<config()>, or C<config_file()> that those modules are supposed to
+affect.
 
 =item read (SOURCE [, MAXSIZE [, MAXHEAD]])
 

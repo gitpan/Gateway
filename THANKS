@@ -35,7 +35,8 @@ Betty Lee <bettylee@leland.stanford.edu>
     became the previoushop module (but relying on a sendmail rewrite hack
     to do it) and gave me the idea of how to do it.  Provided the news
     error status codes that indicated temporary errors for me early on,
-    and requested the prepend directive for the headers module.
+    and requested the prepend directive for the headers module.  Also the
+    source of the idea behind the previoushop module.
 
 Larry Schwimmer <schwim@cs.stanford.edu>
     Suggested the autoreply feature, which now exists in a much altered
@@ -107,3 +108,15 @@ Jeff Garzik <jeff.garzik@spinne.com>
 Tom Hughes <tom@compton.demon.co.uk>
     Found various bugs in mailtonews' extraction of message IDs from the
     In-Reply-To header.
+
+Jon Lennox <lennox@cs.columbia.edu>
+    Noticed that backslashes didn't work as expected outside of double
+    quotes in configuration directives and that line continuation in
+    config files wasn't handled as neatly as it could be.  Both problems
+    have now been fixed.
+
+Curtis (Jewell) Whalen <curtis_whalen@geocities.com>
+    Provided a *lot* of new ideas and new modules that I still need to add
+    into the standard distribution.  Also tested News::Gateway on Windows
+    95 and confirmed that it worked correctly there (with some tweaks to
+    News::Article).

@@ -13,9 +13,10 @@ following:  drop deletes a header, rename renames the original header to
 X-Original-HEADER retaining the same value, ifempty adds a header with
 content C<CONTENT> if and only if the message doesn't already contain a
 header C<HEADER>, replace replaces all existing C<HEADER> headers with one
-containing C<CONTENT>, and prepend adds C<CONTENT> to the beginning of the
+containing C<CONTENT>, prepend adds C<CONTENT> to the beginning of the
 first header C<HEADER> or creates a new header C<HEADER> with content
-C<CONTENT> if none already exists.
+C<CONTENT> if none already exists, and reject returns an error if
+C<HEADER> is present in the incoming message.
 
 C<CONTENT> can contain various special variables:  C<$n> will be replaced
 with the name of the running program, C<$v> will be replaced with the
@@ -43,7 +44,7 @@ and suppose you have an incoming message with the headers:
     Comment: Hello
     Comment: Hello again
 
-After the header module runs, the message will have a header of:
+After the headers module runs, the message will have a header of:
 
     Organization: Restaurant Reviews
     Organization: SNAP
@@ -67,7 +68,17 @@ This probably indicates a typo.
 
 =back
 
-The header module takes no arguments and can never fail.
+This module may fail in one way:
+
+=over 4
+
+=item Invalid header %s
+
+A header that was associated with a reject action in a configuration
+directive was present in the incoming message.  Note that the header will
+be given in all lowercase.
+
+=back
 
 As a side note, if you're constructing a robomoderator for a newsgroup,
 dropping or renaming the Path header in incoming messages is highly

@@ -4,6 +4,15 @@ This module contains the code for reading and parsing configuration
 directives and calling the appropriate module callback hooks.  Nearly all
 News::Gateway programs will make use of this module.
 
+B<WARNING>: Information in configuration directives is B<trusted> by
+modules, and modules may go so far as to eval things from configuration
+directives as Perl code.  This means that anyone who has access to the
+configuration directives read by this module has as much control over what
+a program does as someone who can edit the source.  Any necessary sanity
+or security checking on the content of configuration directives must be
+done B<before> they are passed off to modules, and C<config_file()> does
+no such checking.
+
 =over 4
 
 =item config (DIRECTIVE, ARGUMENT [, ARGUMENT ...])
@@ -23,9 +32,11 @@ Blank lines and lines beginning with a C<#> are ignored.  All other lines
 are parsed into a directive (the first whitespace-separated word) and some
 number of arguments, and then the parse results are passed along to the
 module which has registered interest in that directive.  If an argument
-contains embedded whitespace, it can be enclosed in double quotes; double
-quotes inside double quotes can be escaped with backslashes.  A line is
-considered to be continued on the next line if it ends in a backslash.
+contains embedded whitespace, it can be enclosed in double quotes.  A
+backslash will escape the next character, whatever it is.  A line is
+considered to be continued on the next line if it ends in a backslash, and
+if the line continuation occurs inside double quotes, a literal newline
+will be part of the string.
 
 For example, the following configuration directive tells the C<headers>
 module to add a new header named X-Comment with the content "This is a

@@ -6,6 +6,17 @@ compiled.  The following methods are included:
 
 =over 4
 
+=item mail ([ ADDRESS [, ADDRESS ...]])
+
+The message in its current form will be mailed to C<ADDRESS>, and the
+method will return true on success, false on failure.  If C<ADDRESS> is
+not supplied, the message is mailed to the addresses in the standard mail
+headers (To, Cc, Bcc, and the Resent-* varients depending on your MTA), so
+this method should also be used after news to mail rewrites have taken
+place.
+
+B<NOTE: The old mail_forward() method is DEPRECATED.>
+
 =item mail_bounce (ERROR)
 
 Bounces the message by printing C<ERROR> to stderr and then exiting with
@@ -37,12 +48,6 @@ The message sent will be:
 followed by the original article headers and the body, with ERROR replaced
 by C<ERROR>.  Note that if C<ERROR> should be word-wrapped in the message,
 this must be done by the caller.
-
-=item mail_forward (ADDRESS)
-
-The message in its current form will be mailed to C<ADDRESS>, and the
-method will return true on success, false on failure.  This method can be
-used to forward messages to a moderator for hand-approval.
 
 =item mail_filereply (FILENAME [, SOURCES])
 
